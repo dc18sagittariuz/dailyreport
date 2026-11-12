@@ -73,8 +73,8 @@ const CONFIG = {
     white-space:nowrap;z-index:1}
   .hdr h2{position:absolute;left:149px;top:76px;margin:0;font-size:24px;line-height:1.2;color:#16306b;font-weight:600;
     white-space:nowrap;z-index:1}
-  .datepill{position:absolute;left:24px;top:129px;min-width:405px;height:45px;padding:0 34px 2px 66px;z-index:2;
-    display:flex;align-items:center;border-radius:24px;border:2px solid rgba(255,255,255,.85);
+  .datepill{position:absolute;left:24px;top:129px;min-width:405px;height:45px;padding:0 36px 2px;z-index:2;
+    display:flex;align-items:center;justify-content:center;border-radius:24px;border:2px solid rgba(255,255,255,.85);
     background:linear-gradient(180deg,#2a78cc 0%,#0d55a8 45%,#0a3f8c 100%);color:#fff;font-size:22px;font-weight:600;
     box-shadow:0 3px 7px rgba(10,59,133,.35);white-space:nowrap}
 
@@ -136,6 +136,7 @@ const CONFIG = {
   <label>เรียงตาม
     <select id="selSort">
       <option value="cl">คลอรีน (น้อย→มาก)</option>
+      <option value="tu">ความขุ่น (น้อย→มาก)</option>
       <option value="no">อันดับที่</option>
       <option value="time">เวลา</option>
     </select>
@@ -356,6 +357,7 @@ function render(){
   let rows=ALL.filter(r=>r.date===d && (!b||r.branch===b));
   const sort=$('selSort').value;
   rows.sort(sort==='cl' ? (a,b)=>(isNaN(a.cl)?1e9:a.cl)-(isNaN(b.cl)?1e9:b.cl)
+          : sort==='tu' ? (a,b)=>(isNaN(a.tu)?1e9:a.tu)-(isNaN(b.tu)?1e9:b.tu)
           : sort==='time' ? (a,b)=>timeVal(a.time)-timeVal(b.time)
           : (a,b)=>(a.no||0)-(b.no||0));
 
