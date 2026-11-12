@@ -98,9 +98,10 @@ const CONFIG = {
   .m-head .name{font-size:23px;font-weight:600;color:var(--navy);line-height:1.1}
   .m-head .u{font-size:16px;color:#2d4b6e;font-weight:500}
   .ntu{width:58px;height:58px;border-radius:50%;background:#0d4a96;color:#fff;font-size:21px;display:flex;align-items:center;justify-content:center}
-  .m-body{display:flex;align-items:center;gap:14px;margin:12px 0 14px}
-  .legend{white-space:nowrap;font-size:15px;font-weight:600;color:var(--navy)}
-  .legend div{display:flex;align-items:center;gap:8px;margin:10px 0}
+  .m-body{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
+  .legend{white-space:nowrap;font-size:14.5px;font-weight:600;color:var(--navy)}
+  .legend div{display:flex;align-items:center;gap:8px;margin:7px 0}
+  .legend .sw{border:1px solid rgba(0,0,0,.22)}
   .sw{width:30px;height:20px;border-radius:5px;display:inline-block;flex:none}
   .status{display:flex;align-items:center;justify-content:center;gap:12px;border-radius:16px;padding:8px;
     background:linear-gradient(180deg,#e9fbe9,#c9f1cd);font-size:22px;font-weight:600;color:#0b6a32}
@@ -250,7 +251,7 @@ const CONFIG = {
 <script>
 /* ===================== ยูทิลิตี ===================== */
 const $ = id => document.getElementById(id);
-const C = { green:'#0aa64a', grey:'#d5dde6', blue:'#b8d7ee', amber:'#f2b134', red:'#e5484d' };
+const C = { green:'#0aa64a', grey:'#d5dde6', blue:'#c6d9f1', yellow:'#fff04a', orange:'#ffb81c', red:'#e8302a', amber:'#ffb81c' };
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
 function parseCSV(text){
@@ -398,25 +399,35 @@ function render(){
   $('dropPath').setAttribute('fill', allOk?C.green:C.red);
   $('dropMark').setAttribute('d', allOk?'M30 86 l17 17 l34 -36':'M37 70 L73 104 M73 70 L37 104');
 
+  // สเกลกราฟ (แยกจากเกณฑ์ผ่าน/ไม่ผ่าน ซึ่งใช้ CONFIG.STD)
+  const bucket=(vals,defs)=>defs.map(([label,c,test])=>({label,c,n:vals.filter(test).length}));
   // คลอรีน
-  const cl=rows.filter(r=>!isNaN(r.cl)), cMin=S.chlorineMin.toFixed(2), cMax=S.chlorineMax.toFixed(2);
-  const pCl=[{label:`${cMin} – ${cMax}`,n:cl.filter(r=>r.cl>=S.chlorineMin&&r.cl<=S.chlorineMax).length,c:C.green},
-             {label:`< ${cMin}`,n:cl.filter(r=>r.cl<S.chlorineMin).length,c:C.red},
-             {label:`> ${cMax}`,n:cl.filter(r=>r.cl>S.chlorineMax).length,c:C.amber,hideZero:true}];
-  $('pieCl').innerHTML=pie(pCl); $('legCl').innerHTML=legend(pCl,cl.length); status($('stCl'),pCl[1].n+pCl[2].n===0);
+  const cl=rows.filter(r=>!isNaN(r.cl)).map(r=>r.cl);
+  const pCl=bucket(cl,[
+    ['< 0.20',C.yellow,v=>v<0.2],
+    ['≥ 0.20',C.green ,v=>v>=0.2]]);
+  $('pieCl').innerHTML=pie(pCl); $('legCl').innerHTML=legend(pCl,cl.length);
+  status($('stCl'),!rows.some(r=>lvlCl(r.cl)==='bad'));
   // ความขุ่น
-  const tu=rows.filter(r=>!isNaN(r.tu)), tMax=S.turbidityMax.toFixed(1);
-  const pTu=[{label:'0–0.5',n:tu.filter(r=>r.tu<=0.5).length,c:C.green},
-             {label:`> 0.5–${tMax}`,n:tu.filter(r=>r.tu>0.5&&r.tu<=S.turbidityMax).length,c:C.blue},
-             {label:`> ${tMax}`,n:tu.filter(r=>r.tu>S.turbidityMax).length,c:C.red}];
-  $('pieTu').innerHTML=pie(pTu); $('legTu').innerHTML=legend(pTu,tu.length); status($('stTu'),pTu[2].n===0);
-  // ความนำไฟฟ้า (ไม่มีเกณฑ์กำหนด เว้นแต่ตั้ง conductivityMax)
-  const ec=rows.filter(r=>!isNaN(r.ec)), ecStd=has(S.conductivityMax);
-  const pEc=[{label:'< 400',n:ec.filter(r=>r.ec<400).length,c:C.green},
-             {label:'≥ 400',n:ec.filter(r=>r.ec>=400&&(!ecStd||r.ec<=S.conductivityMax)).length,c:C.blue},
-             {label:ecStd?`> ${S.conductivityMax.toLocaleString('en-US')}`:'',n:ecStd?ec.filter(r=>r.ec>S.conductivityMax).length:0,c:C.red,hideZero:true}];
+  const tu=rows.filter(r=>!isNaN(r.tu)).map(r=>r.tu);
+  const pTu=bucket(tu,[
+    ['0–0.5'    ,C.green ,v=>v<=0.5],
+    ['> 0.5–1.0',C.blue  ,v=>v>0.5&&v<=1],
+    ['> 1.0–2.0',C.yellow,v=>v>1&&v<=2],
+    ['> 2.0–4.0',C.orange,v=>v>2&&v<=4],
+    ['> 4.0'    ,C.red   ,v=>v>4]]);
+  $('pieTu').innerHTML=pie(pTu); $('legTu').innerHTML=legend(pTu,tu.length);
+  status($('stTu'),!rows.some(r=>lvlTu(r.tu)==='bad'));
+  // ความนำไฟฟ้า
+  const ecStd=has(S.conductivityMax), ec=rows.filter(r=>!isNaN(r.ec)).map(r=>r.ec);
+  const pEc=bucket(ec,[
+    ['< 400'      ,C.green ,v=>v<400],
+    ['400–500'    ,C.blue  ,v=>v>=400&&v<=500],
+    ['> 500–700'  ,C.yellow,v=>v>500&&v<=700],
+    ['> 700–1,200',C.orange,v=>v>700&&v<=1200],
+    ['> 1,200'    ,C.red   ,v=>v>1200]]);
   $('pieEc').innerHTML=pie(pEc); $('legEc').innerHTML=legend(pEc,ec.length);
-  status($('stEc'),pEc[2].n===0, ecStd?null:'ไม่มีเกณฑ์มาตรฐานกำหนด');
+  status($('stEc'),!rows.some(r=>lvlEc(r.ec)==='bad'), ecStd?null:'ไม่มีเกณฑ์มาตรฐานกำหนด');
 
   // ตาราง
   const lastKey={ 'รับน้ำจาก':'source','สาขา':'branch','โครงการ':'project','จุดเก็บ':'point' }[CONFIG.LAST_COLUMN]||'source';
