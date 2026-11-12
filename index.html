@@ -28,11 +28,11 @@ const CONFIG = {
 
   // เกณฑ์มาตรฐาน (ไม่ผ่าน = แดง)
   STD: {
-    chlorineMin: 0.2, chlorineMax: 2.0,   // คลอรีนอิสระคงเหลือ 0.2 - 2.0 มก./ล.
+    chlorineMin: 0.2, chlorineMax: 2.0,   // คลอรีนอิสระคงเหลือ 0.2 - 2.0 mg/l
     colorMax: 15,                         // สีปรากฏ ไม่เกิน 15 แพลทินัม-โคบอลต์
     turbidityMax: 1.0,                    // ความขุ่น ไม่เกิน 1.0 NTU
     phMin: 6.5, phMax: 8.5,               // ความเป็นกรด-ด่าง 6.5 - 8.5
-    tdsMax: 1000,                         // สารละลายทั้งหมด ไม่เกิน 1,000 มก./ล.
+    tdsMax: 1000,                         // สารละลายทั้งหมด ไม่เกิน 1,000 mg/l
     conductivityMax: null,                // การนำไฟฟ้า: ไม่มีเกณฑ์กำหนด (ใส่ตัวเลขได้ถ้าต้องการ)
   },
   // เกณฑ์แจ้งเตือน (ผ่านมาตรฐานแต่ควรเฝ้าระวัง = เหลือง) — ปรับตามเกณฑ์ภายในของหน่วยงาน
@@ -191,7 +191,7 @@ const CONFIG = {
     <div class="card metric">
       <div class="m-head">
         <svg width="50" height="60" viewBox="0 0 50 60"><path d="M18 4h14v18l14 28a5 5 0 0 1-4.5 7h-33A5 5 0 0 1 4 50l14-28Z" fill="#cfe6f8" stroke="#6b8fb3" stroke-width="2"/><path d="M10 40h30l6 11a4 4 0 0 1-4 5H8a4 4 0 0 1-4-5Z" fill="#3a78c9"/><circle cx="20" cy="47" r="2.5" fill="#fff"/><circle cx="30" cy="50" r="2" fill="#fff"/><rect x="15" y="1" width="20" height="5" rx="2" fill="#6b8fb3"/></svg>
-        <div><div class="name">คลอรีนอิสระคงเหลือ</div><div class="u">(มก./ล.)</div></div>
+        <div><div class="name">คลอรีนอิสระคงเหลือ</div><div class="u">(mg/l)</div></div>
       </div>
       <div class="m-body"><div id="pieCl"></div><div class="legend" id="legCl"></div></div>
       <div class="status" id="stCl"></div>
@@ -434,8 +434,8 @@ function render(){
   const cls=l=>l?` class="c-${l}"`:'';
   $('tableWrap').innerHTML = n ? `<table>
     <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:150px">ถนน</th><th style="width:70px">เวลา</th>
-      <th style="width:84px">คลอรีน<br>(มก./ล.)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
-      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/L)</th><th style="width:112px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
+      <th style="width:84px">คลอรีน<br>(mg/l)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
+      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th><th style="width:112px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
       <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td${cls(lvlPh(r.ph))}>${f2(r.ph)}</td><td${cls(lvlCo(r.color))}>${isNaN(r.color)?'-':r.color}</td>
@@ -467,12 +467,12 @@ async function exportImage(){
 $('title').textContent=CONFIG.TITLE; $('subtitle').textContent=CONFIG.SUBTITLE; $('credit').textContent=CONFIG.FOOTER;
 const nf=v=>Number(v).toLocaleString('en-US');
 $('critBody').innerHTML=[
-  ['คลอรีนอิสระคงเหลือ','มก./ล.',`${S.chlorineMin.toFixed(1)} – ${S.chlorineMax.toFixed(1)}`],
+  ['คลอรีนอิสระคงเหลือ','mg/l',`${S.chlorineMin.toFixed(1)} – ${S.chlorineMax.toFixed(1)}`],
   ['สีปรากฏ','Pt-Co',`ไม่เกิน ${nf(S.colorMax)}`],
   ['ความขุ่น','NTU',`ไม่เกิน ${S.turbidityMax.toFixed(1)}`],
   ['ความเป็นกรด-ด่าง','',`${S.phMin.toFixed(1)} – ${S.phMax.toFixed(1)}`],
   ['การนำไฟฟ้า','µS/cm',has(S.conductivityMax)?`ไม่เกิน ${nf(S.conductivityMax)}`:'-'],
-  ['สารละลายทั้งหมด','มก./ล.',`ไม่เกิน ${nf(S.tdsMax)}`],
+  ['สารละลายทั้งหมด','mg/l',`ไม่เกิน ${nf(S.tdsMax)}`],
 ].map(([a,u,v])=>`<tr><td>${a}${u?` <span class="cu">(${u})</span>`:''}</td><td>${v}</td></tr>`).join('');
 $('logo').onerror=function(){ this.style.display='none'; }; $('logo').src=CONFIG.LOGO;
 $('vials').innerHTML=[0,38,76].map(x=>`<g transform="translate(${x+4},6)"><rect x="2" y="0" width="26" height="10" rx="3" fill="#24384f"/>
