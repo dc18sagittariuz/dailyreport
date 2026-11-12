@@ -23,8 +23,8 @@ const CONFIG = {
   TITLE: 'รายงานผลคุณภาพน้ำประปา',
   SUBTITLE: 'เส้นท่อจ่ายน้ำ (รายวัน)',
   FOOTER: 'ฝ่ายคุณภาพน้ำ  |  รายงานผลคุณภาพน้ำประปาเส้นท่อจ่ายน้ำ',
-  LOGO: 'logo.png',          // วางไฟล์โลโก้ชื่อนี้ไว้ในโฟลเดอร์เดียวกัน (ถ้าไม่มีจะซ่อนเอง)
-  LAST_COLUMN: 'สาขา',       // คอลัมน์สุดท้ายของตาราง: 'สาขา' | 'โครงการ' | 'จุดเก็บ'
+  LOGO: 'logo.png',          // ไฟล์โลโก้ (ถ้าไม่มีจะซ่อนเอง)
+  LAST_COLUMN: 'รับน้ำจาก',  // คอลัมน์สุดท้ายของตาราง: 'รับน้ำจาก' | 'สาขา' | 'โครงการ' | 'จุดเก็บ'
 
   // เกณฑ์มาตรฐาน (ไม่ผ่าน = แดง)
   STD: { chlorineMin: 0.20, turbidityMax: 4.0, conductivityMax: 1200 },
@@ -54,16 +54,20 @@ const CONFIG = {
 
   /* ---------- รายงาน (ส่วนที่ export เป็นรูป) ---------- */
   #report{width:1160px;margin:0 auto;padding:34px 30px 22px;position:relative;overflow:hidden;
-    background:linear-gradient(180deg,#bfe3fb 0%,#e6f4fe 22%,#dff0fc 70%,#9fd3f6 100%);font-family:'Prompt',sans-serif}
-  .hdr{display:flex;align-items:center;gap:22px;position:relative;z-index:1}
-  .logo{width:104px;height:104px;border-radius:50%;background:#fff;object-fit:contain;padding:6px;
-    box-shadow:0 2px 10px rgba(12,47,107,.18)}
-  .hdr h1{margin:0;font-size:44px;line-height:1.15;color:var(--navy);font-weight:700}
-  .hdr h2{margin:2px 0 0;font-size:25px;color:var(--navy);font-weight:600}
-  .deco{position:absolute;right:-20px;top:-10px;width:520px;height:220px;z-index:0}
-  .datepill{display:inline-block;margin:20px 0 22px;padding:10px 44px 12px;border-radius:30px;
-    background:linear-gradient(90deg,#0a3b85,#1560b8);color:#fff;font-size:24px;font-weight:600;
-    box-shadow:0 3px 8px rgba(10,59,133,.3);position:relative;z-index:1}
+    background:linear-gradient(180deg,#cfeafb 0%,#cfeafb 12%,#e6f4fe 24%,#dff0fc 70%,#9fd3f6 100%);font-family:'Prompt',sans-serif}
+  /* หัวรายงาน: ภาพพื้นหลัง 2245x362 ย่อเหลือกว้าง 1160 */
+  .hdr{position:relative;height:187px;margin:-34px -30px 6px;background:url(header-bg.jpg) center/100% 100% no-repeat}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:44px;
+    background:linear-gradient(180deg,rgba(203,232,251,0),#cbe8fb 70%,#cfeafb)}
+  .logo{position:absolute;left:26px;top:20px;width:87px;height:87px;z-index:1}
+  .hdr h1{position:absolute;left:144px;top:17px;margin:0;font-size:47px;line-height:1.15;color:#16306b;font-weight:700;
+    white-space:nowrap;z-index:1}
+  .hdr h2{position:absolute;left:149px;top:76px;margin:0;font-size:24px;line-height:1.2;color:#16306b;font-weight:600;
+    white-space:nowrap;z-index:1}
+  .datepill{position:absolute;left:24px;top:129px;min-width:405px;height:45px;padding:0 34px 2px 66px;z-index:2;
+    display:flex;align-items:center;border-radius:24px;border:2px solid rgba(255,255,255,.85);
+    background:linear-gradient(180deg,#2a78cc 0%,#0d55a8 45%,#0a3f8c 100%);color:#fff;font-size:22px;font-weight:600;
+    box-shadow:0 3px 7px rgba(10,59,133,.35);white-space:nowrap}
 
   .card{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(240,248,255,.92));border:1px solid #fff;
     border-radius:24px;box-shadow:0 4px 14px rgba(20,90,160,.13)}
@@ -143,29 +147,12 @@ const CONFIG = {
 
 <div class="stage">
 <div id="report">
-  <!-- ตกแต่งมุมขวาบน -->
-  <div class="deco"><svg width="520" height="220" viewBox="0 0 520 220">
-    <defs>
-      <linearGradient id="dg" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#ffffff" stop-opacity=".85"/></linearGradient>
-    </defs>
-    <path d="M40 170 C160 200 300 120 520 60 L520 220 L40 220 Z" fill="#7cc4f2" opacity=".35"/>
-    <path d="M0 150 C140 175 330 110 520 30" stroke="#ffffff" stroke-opacity=".8" stroke-width="10" fill="none" stroke-linecap="round"/>
-    <path d="M60 175 C200 190 360 140 520 95" stroke="#ffffff" stroke-opacity=".7" stroke-width="4" fill="none"/>
-    <g fill="#3b8fd6" opacity=".22">
-      <rect x="330" y="60" width="18" height="80"/><rect x="352" y="35" width="14" height="105"/><rect x="370" y="75" width="22" height="65"/>
-      <rect x="396" y="20" width="12" height="120"/><rect x="412" y="55" width="20" height="85"/><rect x="436" y="85" width="16" height="55"/>
-      <rect x="456" y="45" width="18" height="95"/><rect x="478" y="70" width="24" height="70"/>
-    </g>
-  </svg></div>
-
   <div class="hdr">
-    <img class="logo" id="logo" alt="" crossorigin="anonymous">
-    <div>
-      <h1 id="title"></h1>
-      <h2 id="subtitle"></h2>
-    </div>
+    <img class="logo" id="logo" alt="">
+    <h1 id="title"></h1>
+    <h2 id="subtitle"></h2>
+    <div class="datepill" id="dateText">กำลังโหลดข้อมูล…</div>
   </div>
-  <div class="datepill" id="dateText">กำลังโหลดข้อมูล…</div>
 
   <div class="card summary rel">
     <div class="sum-a" id="sumA">
@@ -291,7 +278,7 @@ const timeFmt = t => { const m=String(t).match(/(\d{1,2})[:.](\d{2})/); return m
 /* ===================== โหลดข้อมูล ===================== */
 const COLS = {           // ชื่อคอลัมน์ในชีต (จับคู่แบบตรงตัวก่อน แล้วค่อยแบบ "มีคำนี้")
   no:['อันดับที่','ลำดับ'], point:['จุดเก็บ'], place:['สถานที่'], road:['ถนน'], date:['วันที่เก็บ','วันที่'],
-  time:['เวลา'], branch:['สาขา'], project:['โครงการ'],
+  time:['เวลา'], branch:['สาขา'], project:['โครงการ'], source:['รับน้ำจาก','รับน้ำ'],
   cl:['คลอรีนอิสระคงเหลือ','คลอรีน'], tu:['ความขุ่น'], ph:['ความเป็นกรด-ด่าง','pH'],
   ec:['การนำไฟฟ้า','ความนำไฟฟ้า'], tds:['สารละลายทั้งหมด','สารละลายรวม','TDS'],
 };
@@ -329,7 +316,7 @@ async function loadData(){
   const g=(r,k)=> ix[k]>=0 ? (r[ix[k]]??'').trim() : '';
   ALL=rows.slice(1).map(r=>({
     no:num(g(r,'no')), point:g(r,'point'), place:g(r,'place'), road:g(r,'road'),
-    date:dateKey(g(r,'date')), time:g(r,'time'), branch:g(r,'branch'), project:g(r,'project'),
+    date:dateKey(g(r,'date')), time:g(r,'time'), branch:g(r,'branch'), project:g(r,'project'), source:g(r,'source'),
     cl:num(g(r,'cl')), tu:num(g(r,'tu')), ph:num(g(r,'ph')), ec:num(g(r,'ec')), tds:num(g(r,'tds')),
   })).filter(r=>r.date && (r.place || !isNaN(r.cl)));
 
@@ -418,7 +405,7 @@ function render(){
   $('pieEc').innerHTML=pie(pEc); $('legEc').innerHTML=legend(pEc,ec.length); status($('stEc'),pEc[2].n===0);
 
   // ตาราง
-  const lastKey={ 'สาขา':'branch','โครงการ':'project','จุดเก็บ':'point' }[CONFIG.LAST_COLUMN]||'branch';
+  const lastKey={ 'รับน้ำจาก':'source','สาขา':'branch','โครงการ':'project','จุดเก็บ':'point' }[CONFIG.LAST_COLUMN]||'source';
   const cls=l=>l?` class="c-${l}"`:'';
   $('tableWrap').innerHTML = n ? `<table>
     <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:170px">ถนน</th><th style="width:70px">เวลา</th>
@@ -427,7 +414,7 @@ function render(){
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
       <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td>${f2(r.ph)}</td>
-      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td>${f0(r.tds)}</td><td>${esc(r[lastKey])}</td></tr>`).join('')}</tbody></table>`
+      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td>${f0(r.tds)}</td><td>${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody></table>`
     : `<div class="card empty">ไม่มีข้อมูลของวันที่เลือก</div>`;
 }
 
