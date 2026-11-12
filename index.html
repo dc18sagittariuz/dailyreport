@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>รายงานผลคุณภาพน้ำประปา เส้นท่อจ่ายน้ำ (รายวัน)</title>
+<title>รายงานคุณภาพน้ำประปาเส้นท่อจ่ายน้ำ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,8 +20,7 @@ const CONFIG = {
   // 'https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?gid=0&single=true&output=csv'
   CSV_URL: '',
 
-  TITLE: 'รายงานผลคุณภาพน้ำประปา',
-  SUBTITLE: 'เส้นท่อจ่ายน้ำ (รายวัน)',
+  TITLE: 'รายงานคุณภาพน้ำประปาเส้นท่อจ่ายน้ำ',
   FOOTER: 'ฝ่ายคุณภาพน้ำ  |  รายงานผลคุณภาพน้ำประปาเส้นท่อจ่ายน้ำ',
   LOGO: 'logo.png',          // ไฟล์โลโก้ (ถ้าไม่มีจะซ่อนเอง)
   LAST_COLUMN: 'รับน้ำจาก',  // คอลัมน์สุดท้ายของตาราง: 'รับน้ำจาก' | 'สาขา' | 'โครงการ' | 'จุดเก็บ'
@@ -68,15 +67,13 @@ const CONFIG = {
   .hdr{position:relative;height:187px;margin:-34px -30px 6px;background:url(header-bg.jpg) center/100% 100% no-repeat}
   .hdr::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:44px;
     background:linear-gradient(180deg,rgba(203,232,251,0),#cbe8fb 70%,#cfeafb)}
+  /* ชั้นสีขาวโปร่งแสงทับภาพพื้นหลัง ให้ตัวอักษรเด่นขึ้น (ปรับความเข้มที่ค่า .5/.38) */
+  .hdr-fade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.5),rgba(255,255,255,.5) 60%,rgba(255,255,255,.38))}
   .logo{position:absolute;left:26px;top:20px;width:87px;height:87px;z-index:1}
-  .hdr h1{position:absolute;left:144px;top:17px;margin:0;font-size:47px;line-height:1.15;color:#16306b;font-weight:700;
-    white-space:nowrap;z-index:1}
-  .hdr h2{position:absolute;left:149px;top:76px;margin:0;font-size:24px;line-height:1.2;color:#16306b;font-weight:600;
-    white-space:nowrap;z-index:1}
-  .datepill{position:absolute;left:24px;top:129px;min-width:405px;height:45px;padding:0 36px 2px;z-index:2;
-    display:flex;align-items:center;justify-content:center;border-radius:24px;border:2px solid rgba(255,255,255,.85);
-    background:linear-gradient(180deg,#2a78cc 0%,#0d55a8 45%,#0a3f8c 100%);color:#fff;font-size:22px;font-weight:600;
-    box-shadow:0 3px 7px rgba(10,59,133,.35);white-space:nowrap}
+  .hdr h1{position:absolute;left:0;right:0;top:24px;margin:0;text-align:center;font-size:50px;line-height:1.2;color:#0f2a62;
+    font-weight:700;white-space:nowrap;z-index:1;text-shadow:0 0 10px rgba(255,255,255,.9)}
+  .datepill{position:absolute;left:0;right:0;top:104px;text-align:center;z-index:1;color:#0f2a62;font-size:34px;font-weight:600;
+    line-height:1.3;white-space:nowrap;text-shadow:0 0 10px rgba(255,255,255,.9)}
 
   .card{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(240,248,255,.92));border:1px solid #fff;
     border-radius:24px;box-shadow:0 4px 14px rgba(20,90,160,.13)}
@@ -151,9 +148,9 @@ const CONFIG = {
 <div class="stage">
 <div id="report">
   <div class="hdr">
+    <div class="hdr-fade"></div>
     <img class="logo" id="logo" alt="">
     <h1 id="title"></h1>
-    <h2 id="subtitle"></h2>
     <div class="datepill" id="dateText">กำลังโหลดข้อมูล…</div>
   </div>
 
@@ -448,7 +445,7 @@ async function exportImage(){
 }
 
 /* ===================== เริ่มต้น ===================== */
-$('title').textContent=CONFIG.TITLE; $('subtitle').textContent=CONFIG.SUBTITLE; $('credit').textContent=CONFIG.FOOTER;
+$('title').textContent=CONFIG.TITLE; $('credit').textContent=CONFIG.FOOTER;
 $('logo').onerror=function(){ this.style.display='none'; }; $('logo').src=CONFIG.LOGO;
 $('vials').innerHTML=[0,38,76].map(x=>`<g transform="translate(${x+4},6)"><rect x="2" y="0" width="26" height="10" rx="3" fill="#24384f"/>
   <rect x="0" y="10" width="30" height="80" rx="5" fill="#eef6fc" stroke="#9db7cf" stroke-width="2"/>
