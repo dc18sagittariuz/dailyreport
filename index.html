@@ -435,7 +435,7 @@ function render(){
   $('tableWrap').innerHTML = n ? `<table>
     <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:150px">ถนน</th><th style="width:70px">เวลา</th>
       <th style="width:84px">คลอรีน<br>(มก./ล.)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
-      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลายรวม<br>(mg/L)</th><th style="width:112px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
+      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/L)</th><th style="width:112px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
       <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td${cls(lvlPh(r.ph))}>${f2(r.ph)}</td><td${cls(lvlCo(r.color))}>${isNaN(r.color)?'-':r.color}</td>
