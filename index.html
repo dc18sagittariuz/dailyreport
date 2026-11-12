@@ -93,16 +93,16 @@ const CONFIG = {
   .pct{font-size:34px;font-weight:700;color:var(--green)}
 
   .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-bottom:20px}
-  .metric{padding:18px 18px 14px}
+  .metric{padding:18px 16px 14px}
   .m-head{display:flex;align-items:center;gap:14px;height:62px}
   .m-head .name{font-size:23px;font-weight:600;color:var(--navy);line-height:1.1}
   .m-head .u{font-size:16px;color:#2d4b6e;font-weight:500}
   .ntu{width:58px;height:58px;border-radius:50%;background:#0d4a96;color:#fff;font-size:21px;display:flex;align-items:center;justify-content:center}
-  .m-body{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
-  .legend{white-space:nowrap;font-size:14.5px;font-weight:600;color:var(--navy)}
+  .m-body{display:flex;align-items:center;gap:10px;height:150px;margin:12px 0 14px}
+  .legend{white-space:nowrap;font-size:13.5px;font-weight:600;color:var(--navy)}
   .legend div{display:flex;align-items:center;gap:8px;margin:7px 0}
   .legend .sw{border:1px solid rgba(0,0,0,.22)}
-  .sw{width:30px;height:20px;border-radius:5px;display:inline-block;flex:none}
+  .sw{width:26px;height:18px;border-radius:5px;display:inline-block;flex:none}
   .status{display:flex;align-items:center;justify-content:center;gap:12px;border-radius:16px;padding:8px;
     background:linear-gradient(180deg,#e9fbe9,#c9f1cd);font-size:22px;font-weight:600;color:#0b6a32}
   .status.na{background:linear-gradient(180deg,#f2f6fa,#e1e9f1);color:#4a6078}
@@ -354,7 +354,7 @@ const lvlTds= v => isNaN(v)?'':(v>S.tdsMax?'bad':'');
 const passes = r => ![lvlCl(r.cl),lvlTu(r.tu),lvlEc(r.ec),lvlPh(r.ph),lvlCo(r.color),lvlTds(r.tds)].includes('bad');
 
 /* ===================== วาดกราฟวงกลม (SVG) ===================== */
-function pie(parts, size=146){
+function pie(parts, size=128){
   const tot=parts.reduce((a,p)=>a+p.n,0), r=size/2;
   if(!tot) return `<svg width="${size}" height="${size}"><circle cx="${r}" cy="${r}" r="${r}" fill="${C.grey}"/></svg>`;
   const nz=parts.filter(p=>p.n>0);
