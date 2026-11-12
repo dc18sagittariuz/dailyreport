@@ -116,11 +116,12 @@ const CONFIG = {
   td{padding:7px 6px;text-align:center;border:1px solid #dbe5ef;line-height:1.3}
   tbody tr:nth-child(even) td{background:#f3f8fd}
   td.place{text-align:center}
+  td.src{white-space:nowrap;font-size:14px;padding:7px 6px}
   td.c-warn{background:var(--warn)!important;box-shadow:inset 0 0 0 1px var(--warn-b)}
   td.c-bad{background:var(--bad)!important;color:#b3261e;font-weight:700;box-shadow:inset 0 0 0 1px var(--bad-b)}
   .empty{padding:40px;text-align:center;font-size:20px;color:#567}
 
-  tfoot td{background:#e3f0fb!important;color:#0b3f86;font-family:'Prompt',sans-serif;font-weight:600;font-size:14.5px;
+  tfoot td{white-space:nowrap;background:#e3f0fb!important;color:#0b3f86;font-family:'Prompt',sans-serif;font-weight:600;font-size:13.5px;
     border-top:2px solid #0b52a0;padding:8px 4px;line-height:1.25}
   tfoot td.std-h{font-size:16px;text-align:center;color:#0c2f6b}
   .credit{text-align:center;color:#2c5a86;font-size:14px;margin-top:14px;font-family:'Sarabun',sans-serif;opacity:.8}
@@ -407,15 +408,15 @@ function render(){
   const showCld=rows.some(r=>!isNaN(r.chloride));
   const fCld=v=>isNaN(v)?'-':String(+v.toFixed(2));
   $('tableWrap').innerHTML = n ? `<table>
-    <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:${showCld?128:150}px">ถนน</th><th style="width:70px">เวลา</th>
-      <th style="width:84px">คลอรีน<br>(mg/l)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
-      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th>${showCld?'<th style="width:82px">คลอไรด์<br>(mg/l)</th>':''}<th style="width:${showCld?96:112}px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
+    <thead><tr><th style="width:44px">ลำดับ</th><th style="min-width:190px">สถานที่</th><th style="width:${showCld?112:130}px">ถนน</th><th style="width:62px">เวลา</th>
+      <th style="width:70px">คลอรีน<br>(mg/l)</th><th style="width:72px">ความขุ่น<br>(NTU)</th><th style="width:56px">pH</th><th style="width:68px">สีปรากฏ<br>(Pt-Co)</th>
+      <th style="width:88px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:82px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th>${showCld?'<th style="width:78px">คลอไรด์<br>(mg/l)</th>':''}<th style="white-space:nowrap">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
       <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td${cls(lvlPh(r.ph))}>${f2(r.ph)}</td><td${cls(lvlCo(r.color))}>${isNaN(r.color)?'-':r.color}</td>
-      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td${cls(lvlTds(r.tds))}>${f0(r.tds)}</td>${showCld?`<td${cls(lvlCld(r.chloride))}>${fCld(r.chloride)}</td>`:''}<td>${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody>
+      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td${cls(lvlTds(r.tds))}>${f0(r.tds)}</td>${showCld?`<td${cls(lvlCld(r.chloride))}>${fCld(r.chloride)}</td>`:''}<td class="src">${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody>
     <tfoot><tr><td colspan="4" class="std-h">เกณฑ์มาตรฐานคุณภาพน้ำประปา</td>
-      <td>${S.chlorineMin.toFixed(1)} – ${S.chlorineMax.toFixed(1)}</td>
+      <td>${S.chlorineMin.toFixed(1)}–${S.chlorineMax.toFixed(1)}</td>
       <td>ไม่เกิน ${S.turbidityMax.toFixed(1)}</td>
       <td style="white-space:nowrap">${S.phMin.toFixed(1)}–${S.phMax.toFixed(1)}</td>
       <td>ไม่เกิน ${nf(S.colorMax)}</td>
