@@ -33,6 +33,7 @@ const CONFIG = {
     turbidityMax: 1.0,                    // ความขุ่น ไม่เกิน 1.0 NTU
     phMin: 6.5, phMax: 8.5,               // ความเป็นกรด-ด่าง 6.5 - 8.5
     tdsMax: 1000,                         // สารละลายทั้งหมด ไม่เกิน 1,000 mg/l
+    chlorideMax: null,                    // คลอไรด์: ใส่ตัวเลขถ้าต้องการเกณฑ์ (null = ไม่แสดงเกณฑ์)
     conductivityMax: null,                // การนำไฟฟ้า: ไม่มีเกณฑ์กำหนด (ใส่ตัวเลขได้ถ้าต้องการ)
   },
   // เกณฑ์แจ้งเตือน (ผ่านมาตรฐานแต่ควรเฝ้าระวัง = เหลือง) — ปรับตามเกณฑ์ภายในของหน่วยงาน
@@ -255,7 +256,7 @@ const COLS = {           // ชื่อคอลัมน์ในชีต (�
   no:['อันดับที่','ลำดับ'], point:['จุดเก็บ'], place:['สถานที่'], road:['ถนน'], date:['วันที่เก็บ','วันที่'],
   time:['เวลา'], branch:['สาขา'], project:['โครงการ'], source:['รับน้ำจาก','รับน้ำ'],
   cl:['คลอรีนอิสระคงเหลือ','คลอรีน'], tu:['ความขุ่น'], ph:['ความเป็นกรด-ด่าง','pH'],
-  ec:['การนำไฟฟ้า','ความนำไฟฟ้า'], tds:['สารละลายทั้งหมด','สารละลายรวม','TDS'], color:['สีปรากฏ','สี'],
+  ec:['การนำไฟฟ้า','ความนำไฟฟ้า'], tds:['สารละลายทั้งหมด','สารละลายรวม','TDS'], color:['สีปรากฏ','สี'], chloride:['คลอไรด์'],
 };
 function mapHeader(h){
   const H=h.map(x=>x.replace(/\s+/g,' ').trim()); const idx={};
@@ -292,7 +293,7 @@ async function loadData(){
   ALL=rows.slice(1).map(r=>({
     no:num(g(r,'no')), point:g(r,'point'), place:g(r,'place'), road:g(r,'road'),
     date:dateKey(g(r,'date')), time:g(r,'time'), branch:g(r,'branch'), project:g(r,'project'), source:g(r,'source'),
-    cl:num(g(r,'cl')), tu:num(g(r,'tu')), ph:num(g(r,'ph')), ec:num(g(r,'ec')), tds:num(g(r,'tds')), color:num(g(r,'color')),
+    cl:num(g(r,'cl')), tu:num(g(r,'tu')), ph:num(g(r,'ph')), ec:num(g(r,'ec')), tds:num(g(r,'tds')), color:num(g(r,'color')), chloride:num(g(r,'chloride')),
   })).filter(r=>r.date && (r.place || !isNaN(r.cl)));
 
   const dates=[...new Set(ALL.map(r=>r.date))].sort().reverse();
@@ -318,7 +319,8 @@ const lvlEc = v => isNaN(v)?'':(has(S.conductivityMax)&&v>S.conductivityMax?'bad
 const lvlPh = v => isNaN(v)?'':((v<S.phMin||v>S.phMax)?'bad':'');
 const lvlCo = v => isNaN(v)?'':(v>S.colorMax?'bad':'');
 const lvlTds= v => isNaN(v)?'':(v>S.tdsMax?'bad':'');
-const passes = r => ![lvlCl(r.cl),lvlTu(r.tu),lvlEc(r.ec),lvlPh(r.ph),lvlCo(r.color),lvlTds(r.tds)].includes('bad');
+const lvlCld= v => isNaN(v)||!has(S.chlorideMax)?'':(v>S.chlorideMax?'bad':'');
+const passes = r => ![lvlCl(r.cl),lvlTu(r.tu),lvlEc(r.ec),lvlPh(r.ph),lvlCo(r.color),lvlTds(r.tds),lvlCld(r.chloride)].includes('bad');
 
 /* ===================== วาดกราฟวงกลม (SVG) ===================== */
 function pie(parts, size=128){
@@ -399,14 +401,17 @@ function render(){
   // ตาราง
   const lastKey={ 'รับน้ำจาก':'source','สาขา':'branch','โครงการ':'project','จุดเก็บ':'point' }[CONFIG.LAST_COLUMN]||'source';
   const cls=l=>l?` class="c-${l}"`:'';
+  // คอลัมน์คลอไรด์: แสดงเฉพาะเมื่อมีค่าในข้อมูลที่กำลังแสดง
+  const showCld=rows.some(r=>!isNaN(r.chloride));
+  const fCld=v=>isNaN(v)?'-':String(+v.toFixed(2));
   $('tableWrap').innerHTML = n ? `<table>
-    <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:150px">ถนน</th><th style="width:70px">เวลา</th>
+    <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:${showCld?128:150}px">ถนน</th><th style="width:70px">เวลา</th>
       <th style="width:84px">คลอรีน<br>(mg/l)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
-      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th><th style="width:112px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
+      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th>${showCld?'<th style="width:72px">คลอไรด์<br>(mg/l)</th>':''}<th style="width:${showCld?96:112}px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
       <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td${cls(lvlPh(r.ph))}>${f2(r.ph)}</td><td${cls(lvlCo(r.color))}>${isNaN(r.color)?'-':r.color}</td>
-      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td${cls(lvlTds(r.tds))}>${f0(r.tds)}</td><td>${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody>
+      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td${cls(lvlTds(r.tds))}>${f0(r.tds)}</td>${showCld?`<td${cls(lvlCld(r.chloride))}>${fCld(r.chloride)}</td>`:''}<td>${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody>
     <tfoot><tr><td colspan="4" class="std-h">เกณฑ์มาตรฐานคุณภาพน้ำประปา</td>
       <td>${S.chlorineMin.toFixed(1)} – ${S.chlorineMax.toFixed(1)}</td>
       <td>ไม่เกิน ${S.turbidityMax.toFixed(1)}</td>
@@ -414,6 +419,7 @@ function render(){
       <td>ไม่เกิน ${nf(S.colorMax)}</td>
       <td>${has(S.conductivityMax)?'ไม่เกิน '+nf(S.conductivityMax):'-'}</td>
       <td>ไม่เกิน ${nf(S.tdsMax)}</td>
+      ${showCld?`<td>${has(S.chlorideMax)?'ไม่เกิน '+nf(S.chlorideMax):'-'}</td>`:''}
       <td></td></tr></tfoot></table>`
     : `<div class="card empty">ไม่มีข้อมูลของวันที่เลือก</div>`;
 }
