@@ -33,7 +33,7 @@ const CONFIG = {
     turbidityMax: 1.0,                    // ความขุ่น ไม่เกิน 1.0 NTU
     phMin: 6.5, phMax: 8.5,               // ความเป็นกรด-ด่าง 6.5 - 8.5
     tdsMax: 1000,                         // สารละลายทั้งหมด ไม่เกิน 1,000 mg/l
-    chlorideMax: null,                    // คลอไรด์: ใส่ตัวเลขถ้าต้องการเกณฑ์ (null = ไม่แสดงเกณฑ์)
+    chlorideMax: 250,                     // คลอไรด์ ไม่เกิน 250 mg/l
     conductivityMax: null,                // การนำไฟฟ้า: ไม่มีเกณฑ์กำหนด (ใส่ตัวเลขได้ถ้าต้องการ)
   },
   // เกณฑ์แจ้งเตือน (ผ่านมาตรฐานแต่ควรเฝ้าระวัง = เหลือง) — ปรับตามเกณฑ์ภายในของหน่วยงาน
@@ -407,7 +407,7 @@ function render(){
   $('tableWrap').innerHTML = n ? `<table>
     <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:${showCld?128:150}px">ถนน</th><th style="width:70px">เวลา</th>
       <th style="width:84px">คลอรีน<br>(mg/l)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
-      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th>${showCld?'<th style="width:72px">คลอไรด์<br>(mg/l)</th>':''}<th style="width:${showCld?96:112}px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
+      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลาย<br>ทั้งหมด<br>(mg/l)</th>${showCld?'<th style="width:82px">คลอไรด์<br>(mg/l)</th>':''}<th style="width:${showCld?96:112}px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
       <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td${cls(lvlPh(r.ph))}>${f2(r.ph)}</td><td${cls(lvlCo(r.color))}>${isNaN(r.color)?'-':r.color}</td>
