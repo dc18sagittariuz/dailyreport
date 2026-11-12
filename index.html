@@ -27,9 +27,17 @@ const CONFIG = {
   LAST_COLUMN: 'รับน้ำจาก',  // คอลัมน์สุดท้ายของตาราง: 'รับน้ำจาก' | 'สาขา' | 'โครงการ' | 'จุดเก็บ'
 
   // เกณฑ์มาตรฐาน (ไม่ผ่าน = แดง)
-  STD: { chlorineMin: 0.20, turbidityMax: 4.0, conductivityMax: 1200 },
+  STD: {
+    chlorineMin: 0.2, chlorineMax: 2.0,   // คลอรีนอิสระคงเหลือ 0.2 - 2.0 มก./ล.
+    colorMax: 15,                         // สีปรากฏ ไม่เกิน 15 แพลทินัม-โคบอลต์
+    turbidityMax: 1.0,                    // ความขุ่น ไม่เกิน 1.0 NTU
+    phMin: 6.5, phMax: 8.5,               // ความเป็นกรด-ด่าง 6.5 - 8.5
+    tdsMax: 1000,                         // สารละลายทั้งหมด ไม่เกิน 1,000 มก./ล.
+    conductivityMax: null,                // การนำไฟฟ้า: ไม่มีเกณฑ์กำหนด (ใส่ตัวเลขได้ถ้าต้องการ)
+  },
   // เกณฑ์แจ้งเตือน (ผ่านมาตรฐานแต่ควรเฝ้าระวัง = เหลือง) — ปรับตามเกณฑ์ภายในของหน่วยงาน
-  WARN: { chlorineBelow: 0.30, turbidityAbove: 1.0, conductivityAbove: 800 },
+  // ใส่ null เพื่อปิดการแจ้งเตือนรายการนั้น
+  WARN: { chlorineBelow: 0.30, turbidityAbove: null, conductivityAbove: null },
 };
 </script>
 <style>
@@ -76,7 +84,7 @@ const CONFIG = {
   .sum-a.bad{background:#ffe7e3}
   .sum-a .t1{font-size:27px;font-weight:600;color:var(--navy);line-height:1.25}
   .sum-a .t2{font-size:40px;font-weight:700;color:var(--green);line-height:1.2}
-  .sum-a.bad .t2{color:#d23a2a;font-size:32px}
+  .sum-a.bad .t2{color:#d23a2a;font-size:30px;white-space:nowrap}
   .sum-b,.sum-c{display:flex;align-items:center;justify-content:center;gap:16px;border-left:3px solid #2f6fd0;height:110px}
   .sum-c{flex-direction:column;gap:0}
   .lbl{font-size:20px;font-weight:600;color:var(--navy)}
@@ -96,6 +104,7 @@ const CONFIG = {
   .sw{width:30px;height:20px;border-radius:5px;display:inline-block;flex:none}
   .status{display:flex;align-items:center;justify-content:center;gap:12px;border-radius:16px;padding:8px;
     background:linear-gradient(180deg,#e9fbe9,#c9f1cd);font-size:22px;font-weight:600;color:#0b6a32}
+  .status.na{background:linear-gradient(180deg,#f2f6fa,#e1e9f1);color:#4a6078}
   .status.bad{background:linear-gradient(180deg,#ffeceb,#ffd2cf);color:#b3261e}
 
   table{width:100%;border-collapse:collapse;background:#fff;font-family:'Sarabun',sans-serif;font-size:16px;
@@ -113,8 +122,9 @@ const CONFIG = {
   .crit{padding:16px 20px}
   .crit h3,.note h3{margin:0 0 10px;font-size:21px;white-space:nowrap;color:var(--navy);display:flex;align-items:center;gap:12px}
   .crit table{box-shadow:none;border-radius:12px;overflow:hidden;font-family:'Prompt',sans-serif}
-  .crit td{white-space:nowrap;text-align:left;font-size:17px;padding:6px 12px;background:#fff!important;color:var(--navy)}
-  .crit td:last-child{color:#0b52a0;font-weight:600;width:30%}
+  .crit td{white-space:nowrap;text-align:left;font-size:15.5px;padding:4px 10px;background:#fff!important;color:var(--navy)}
+  .crit td:last-child{color:#0b52a0;font-weight:600;width:34%}
+  .crit .cu{font-size:13px;color:#5a7290;font-weight:400}
   .crit td .ic{display:inline-block;width:28px;vertical-align:middle;margin-right:8px;text-align:center}
   .promo{display:flex;align-items:center;gap:12px;justify-content:center}
   .promo .p1{white-space:nowrap;font-size:24px;font-weight:700;color:var(--navy)}
@@ -210,9 +220,7 @@ const CONFIG = {
       <h3><svg width="46" height="46" viewBox="0 0 46 46"><circle cx="21" cy="25" r="18" fill="none" stroke="#0d4a96" stroke-width="3"/><circle cx="21" cy="25" r="11" fill="none" stroke="#0d4a96" stroke-width="3"/><circle cx="21" cy="25" r="4" fill="#0d4a96"/><path d="M21 25 L40 6" stroke="#0d4a96" stroke-width="3"/><path d="M36 3 l7 0 l-3 4 l-4 4 z" fill="#0d4a96"/></svg>
         เกณฑ์มาตรฐานคุณภาพน้ำประปา</h3>
       <table>
-        <tr><td><span class="ic">🧪</span>คลอรีนอิสระคงเหลือ</td><td id="cr1"></td></tr>
-        <tr><td><span class="ic" style="font-size:12px;font-weight:700;color:#0d4a96">NTU</span>ความขุ่น</td><td id="cr2"></td></tr>
-        <tr><td><span class="ic">⚡</span>ความนำไฟฟ้า</td><td id="cr3"></td></tr>
+        <tbody id="critBody"></tbody>
       </table>
     </div>
     <div class="promo">
@@ -280,7 +288,7 @@ const COLS = {           // ชื่อคอลัมน์ในชีต (�
   no:['อันดับที่','ลำดับ'], point:['จุดเก็บ'], place:['สถานที่'], road:['ถนน'], date:['วันที่เก็บ','วันที่'],
   time:['เวลา'], branch:['สาขา'], project:['โครงการ'], source:['รับน้ำจาก','รับน้ำ'],
   cl:['คลอรีนอิสระคงเหลือ','คลอรีน'], tu:['ความขุ่น'], ph:['ความเป็นกรด-ด่าง','pH'],
-  ec:['การนำไฟฟ้า','ความนำไฟฟ้า'], tds:['สารละลายทั้งหมด','สารละลายรวม','TDS'],
+  ec:['การนำไฟฟ้า','ความนำไฟฟ้า'], tds:['สารละลายทั้งหมด','สารละลายรวม','TDS'], color:['สีปรากฏ','สี'],
 };
 function mapHeader(h){
   const H=h.map(x=>x.replace(/\s+/g,' ').trim()); const idx={};
@@ -317,7 +325,7 @@ async function loadData(){
   ALL=rows.slice(1).map(r=>({
     no:num(g(r,'no')), point:g(r,'point'), place:g(r,'place'), road:g(r,'road'),
     date:dateKey(g(r,'date')), time:g(r,'time'), branch:g(r,'branch'), project:g(r,'project'), source:g(r,'source'),
-    cl:num(g(r,'cl')), tu:num(g(r,'tu')), ph:num(g(r,'ph')), ec:num(g(r,'ec')), tds:num(g(r,'tds')),
+    cl:num(g(r,'cl')), tu:num(g(r,'tu')), ph:num(g(r,'ph')), ec:num(g(r,'ec')), tds:num(g(r,'tds')), color:num(g(r,'color')),
   })).filter(r=>r.date && (r.place || !isNaN(r.cl)));
 
   const dates=[...new Set(ALL.map(r=>r.date))].sort().reverse();
@@ -335,10 +343,14 @@ function fillBranches(){
 
 /* ===================== ประเมินเกณฑ์ ===================== */
 const S=CONFIG.STD, W=CONFIG.WARN;
-const lvlCl = v => isNaN(v)?'':(v<S.chlorineMin?'bad':(v<W.chlorineBelow?'warn':''));
-const lvlTu = v => isNaN(v)?'':(v>S.turbidityMax?'bad':(v>W.turbidityAbove?'warn':''));
-const lvlEc = v => isNaN(v)?'':(v>S.conductivityMax?'bad':(v>W.conductivityAbove?'warn':''));
-const passes = r => lvlCl(r.cl)!=='bad' && lvlTu(r.tu)!=='bad' && lvlEc(r.ec)!=='bad';
+const has = x => x!=null && x!=='';
+const lvlCl = v => isNaN(v)?'':((v<S.chlorineMin||(has(S.chlorineMax)&&v>S.chlorineMax))?'bad':(has(W.chlorineBelow)&&v<W.chlorineBelow?'warn':''));
+const lvlTu = v => isNaN(v)?'':(v>S.turbidityMax?'bad':(has(W.turbidityAbove)&&v>W.turbidityAbove?'warn':''));
+const lvlEc = v => isNaN(v)?'':(has(S.conductivityMax)&&v>S.conductivityMax?'bad':(has(W.conductivityAbove)&&v>W.conductivityAbove?'warn':''));
+const lvlPh = v => isNaN(v)?'':((v<S.phMin||v>S.phMax)?'bad':'');
+const lvlCo = v => isNaN(v)?'':(v>S.colorMax?'bad':'');
+const lvlTds= v => isNaN(v)?'':(v>S.tdsMax?'bad':'');
+const passes = r => ![lvlCl(r.cl),lvlTu(r.tu),lvlEc(r.ec),lvlPh(r.ph),lvlCo(r.color),lvlTds(r.tds)].includes('bad');
 
 /* ===================== วาดกราฟวงกลม (SVG) ===================== */
 function pie(parts, size=146){
@@ -359,7 +371,8 @@ function legend(parts,tot){
   return parts.filter(p=>!p.hideZero||p.n>0).map(p=>
     `<div><span class="sw" style="background:${p.c}"></span>${p.label} : ${p.n} (${tot?Math.round(p.n/tot*100):0}%)</div>`).join('');
 }
-function status(el,ok){
+function status(el,ok,neutral){
+  if(neutral){ el.className='status na'; el.innerHTML=neutral; return; }
   const ic=ok?`<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#0aa64a"/><path d="M11 21 l6 6 l12 -13" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
              :`<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#e5484d"/><path d="M13 13 L27 27 M27 13 L13 27" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>`;
   el.className='status'+(ok?'':' bad'); el.innerHTML=ic+(ok?'เป็นไปตามเกณฑ์':'พบค่าไม่เป็นไปตามเกณฑ์');
@@ -386,35 +399,36 @@ function render(){
   $('dropMark').setAttribute('d', allOk?'M30 86 l17 17 l34 -36':'M37 70 L73 104 M73 70 L37 104');
 
   // คลอรีน
-  const cl=rows.filter(r=>!isNaN(r.cl));
-  const pCl=[{label:`≥ ${S.chlorineMin.toFixed(2)}`,n:cl.filter(r=>r.cl>=S.chlorineMin).length,c:C.green},
-             {label:`< ${S.chlorineMin.toFixed(2)}`,n:cl.filter(r=>r.cl<S.chlorineMin).length,c:C.red}];
-  $('pieCl').innerHTML=pie(pCl); $('legCl').innerHTML=legend(pCl,cl.length); status($('stCl'),pCl[1].n===0);
+  const cl=rows.filter(r=>!isNaN(r.cl)), cMin=S.chlorineMin.toFixed(2), cMax=S.chlorineMax.toFixed(2);
+  const pCl=[{label:`${cMin} – ${cMax}`,n:cl.filter(r=>r.cl>=S.chlorineMin&&r.cl<=S.chlorineMax).length,c:C.green},
+             {label:`< ${cMin}`,n:cl.filter(r=>r.cl<S.chlorineMin).length,c:C.red},
+             {label:`> ${cMax}`,n:cl.filter(r=>r.cl>S.chlorineMax).length,c:C.amber,hideZero:true}];
+  $('pieCl').innerHTML=pie(pCl); $('legCl').innerHTML=legend(pCl,cl.length); status($('stCl'),pCl[1].n+pCl[2].n===0);
   // ความขุ่น
-  const tu=rows.filter(r=>!isNaN(r.tu));
+  const tu=rows.filter(r=>!isNaN(r.tu)), tMax=S.turbidityMax.toFixed(1);
   const pTu=[{label:'0–0.5',n:tu.filter(r=>r.tu<=0.5).length,c:C.green},
-             {label:'> 0.5–1.0',n:tu.filter(r=>r.tu>0.5&&r.tu<=1).length,c:C.blue},
-             {label:`> 1.0–${S.turbidityMax.toFixed(1)}`,n:tu.filter(r=>r.tu>1&&r.tu<=S.turbidityMax).length,c:C.amber,hideZero:true},
-             {label:`> ${S.turbidityMax.toFixed(1)}`,n:tu.filter(r=>r.tu>S.turbidityMax).length,c:C.red,hideZero:true}];
-  $('pieTu').innerHTML=pie(pTu); $('legTu').innerHTML=legend(pTu,tu.length); status($('stTu'),pTu[3].n===0);
-  // ความนำไฟฟ้า
-  const ec=rows.filter(r=>!isNaN(r.ec));
+             {label:`> 0.5–${tMax}`,n:tu.filter(r=>r.tu>0.5&&r.tu<=S.turbidityMax).length,c:C.blue},
+             {label:`> ${tMax}`,n:tu.filter(r=>r.tu>S.turbidityMax).length,c:C.red}];
+  $('pieTu').innerHTML=pie(pTu); $('legTu').innerHTML=legend(pTu,tu.length); status($('stTu'),pTu[2].n===0);
+  // ความนำไฟฟ้า (ไม่มีเกณฑ์กำหนด เว้นแต่ตั้ง conductivityMax)
+  const ec=rows.filter(r=>!isNaN(r.ec)), ecStd=has(S.conductivityMax);
   const pEc=[{label:'< 400',n:ec.filter(r=>r.ec<400).length,c:C.green},
-             {label:'≥ 400',n:ec.filter(r=>r.ec>=400&&r.ec<=S.conductivityMax).length,c:C.blue},
-             {label:`> ${S.conductivityMax.toLocaleString('en-US')}`,n:ec.filter(r=>r.ec>S.conductivityMax).length,c:C.red,hideZero:true}];
-  $('pieEc').innerHTML=pie(pEc); $('legEc').innerHTML=legend(pEc,ec.length); status($('stEc'),pEc[2].n===0);
+             {label:'≥ 400',n:ec.filter(r=>r.ec>=400&&(!ecStd||r.ec<=S.conductivityMax)).length,c:C.blue},
+             {label:ecStd?`> ${S.conductivityMax.toLocaleString('en-US')}`:'',n:ecStd?ec.filter(r=>r.ec>S.conductivityMax).length:0,c:C.red,hideZero:true}];
+  $('pieEc').innerHTML=pie(pEc); $('legEc').innerHTML=legend(pEc,ec.length);
+  status($('stEc'),pEc[2].n===0, ecStd?null:'ไม่มีเกณฑ์มาตรฐานกำหนด');
 
   // ตาราง
   const lastKey={ 'รับน้ำจาก':'source','สาขา':'branch','โครงการ':'project','จุดเก็บ':'point' }[CONFIG.LAST_COLUMN]||'source';
   const cls=l=>l?` class="c-${l}"`:'';
   $('tableWrap').innerHTML = n ? `<table>
-    <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:170px">ถนน</th><th style="width:70px">เวลา</th>
-      <th style="width:88px">คลอรีน<br>(มก./ล.)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:62px">pH</th>
-      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลายรวม<br>(mg/L)</th><th style="width:120px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
+    <thead><tr><th style="width:48px">ลำดับ</th><th>สถานที่</th><th style="width:150px">ถนน</th><th style="width:70px">เวลา</th>
+      <th style="width:84px">คลอรีน<br>(มก./ล.)</th><th style="width:84px">ความขุ่น<br>(NTU)</th><th style="width:58px">pH</th><th style="width:76px">สีปรากฏ<br>(Pt-Co)</th>
+      <th style="width:100px">ความนำไฟฟ้า<br>(µS/cm)</th><th style="width:100px">สารละลายรวม<br>(mg/L)</th><th style="width:112px">${esc(CONFIG.LAST_COLUMN)}</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td><td class="place">${esc(r.place)}</td><td>${esc(r.road)||'-'}</td><td>${timeFmt(r.time)}</td>
-      <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td>${f2(r.ph)}</td>
-      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td>${f0(r.tds)}</td><td>${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody></table>`
+      <td${cls(lvlCl(r.cl))}>${f2(r.cl)}</td><td${cls(lvlTu(r.tu))}>${f2(r.tu)}</td><td${cls(lvlPh(r.ph))}>${f2(r.ph)}</td><td${cls(lvlCo(r.color))}>${isNaN(r.color)?'-':r.color}</td>
+      <td${cls(lvlEc(r.ec))}>${f0(r.ec)}</td><td${cls(lvlTds(r.tds))}>${f0(r.tds)}</td><td>${esc(r[lastKey])||'-'}</td></tr>`).join('')}</tbody></table>`
     : `<div class="card empty">ไม่มีข้อมูลของวันที่เลือก</div>`;
 }
 
@@ -440,8 +454,15 @@ async function exportImage(){
 
 /* ===================== เริ่มต้น ===================== */
 $('title').textContent=CONFIG.TITLE; $('subtitle').textContent=CONFIG.SUBTITLE; $('credit').textContent=CONFIG.FOOTER;
-$('cr1').textContent='≥ '+S.chlorineMin.toFixed(2); $('cr2').textContent='≤ '+S.turbidityMax.toFixed(1);
-$('cr3').textContent='≤ '+S.conductivityMax.toLocaleString('en-US');
+const nf=v=>Number(v).toLocaleString('en-US');
+$('critBody').innerHTML=[
+  ['คลอรีนอิสระคงเหลือ','มก./ล.',`${S.chlorineMin.toFixed(1)} – ${S.chlorineMax.toFixed(1)}`],
+  ['สีปรากฏ','Pt-Co',`ไม่เกิน ${nf(S.colorMax)}`],
+  ['ความขุ่น','NTU',`ไม่เกิน ${S.turbidityMax.toFixed(1)}`],
+  ['ความเป็นกรด-ด่าง','',`${S.phMin.toFixed(1)} – ${S.phMax.toFixed(1)}`],
+  ['การนำไฟฟ้า','µS/cm',has(S.conductivityMax)?`ไม่เกิน ${nf(S.conductivityMax)}`:'-'],
+  ['สารละลายทั้งหมด','มก./ล.',`ไม่เกิน ${nf(S.tdsMax)}`],
+].map(([a,u,v])=>`<tr><td>${a}${u?` <span class="cu">(${u})</span>`:''}</td><td>${v}</td></tr>`).join('');
 $('logo').onerror=function(){ this.style.display='none'; }; $('logo').src=CONFIG.LOGO;
 $('vials').innerHTML=[0,38,76].map(x=>`<g transform="translate(${x+4},6)"><rect x="2" y="0" width="26" height="10" rx="3" fill="#24384f"/>
   <rect x="0" y="10" width="30" height="80" rx="5" fill="#eef6fc" stroke="#9db7cf" stroke-width="2"/>
