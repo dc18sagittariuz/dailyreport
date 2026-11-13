@@ -59,6 +59,24 @@ const CONFIG = {
   .btn:disabled{opacity:.6;cursor:wait}
   #msg{font-size:13px;color:#a33}
   .stage{overflow-x:auto;padding:20px 0 40px}
+  /* ย่อรายงานให้พอดีความกว้างจอ (มือถือ/แท็บเล็ต) — รูปที่ export ยังเป็นขนาดเต็ม */
+  #fit{margin:0 auto;overflow:hidden}
+  #fit #report{transform-origin:0 0}
+  .hint{display:none}
+  @media (max-width:760px){
+    .toolbar{position:static;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 10px 12px;font-size:15px}
+    .toolbar label{flex-direction:column;align-items:stretch;gap:3px;font-size:13px}
+    .toolbar label.sortl{grid-column:1 / -1}
+    .toolbar select{width:100%;padding:9px 8px;font-size:15px}
+    .toolbar .sp{display:none}
+    .toolbar #btnReload{padding:11px 8px}
+    .toolbar #btnExport{padding:11px 8px}
+    #msg{grid-column:1 / -1;order:9}
+    #msg:empty{display:none}
+    .toolbar select{padding:8px}
+    .stage{padding:8px 0 24px}
+    .hint{display:block;text-align:center;font-size:12.5px;color:#678;font-family:'Prompt',sans-serif;margin:0 0 6px}
+  }
 
   /* ---------- รายงาน (ส่วนที่ export เป็นรูป) ---------- */
   #report{width:1160px;margin:0 auto;padding:34px 30px 22px;position:relative;overflow:hidden;
@@ -134,7 +152,7 @@ const CONFIG = {
 <div class="toolbar">
   <label>วันที่ <select id="selDate"></select></label>
   <label>สาขา <select id="selBranch"><option value="">ทั้งหมด</option></select></label>
-  <label>เรียงตาม
+  <label class="sortl">เรียงตาม
     <select id="selSort">
       <option value="cl">คลอรีน (น้อย→มาก)</option>
       <option value="tu">ความขุ่น (น้อย→มาก)</option>
@@ -152,6 +170,8 @@ const CONFIG = {
 </div>
 
 <div class="stage">
+<div class="hint">ใช้สองนิ้วถ่างเพื่อซูมดูรายละเอียด</div>
+<div id="fit">
 <div id="report">
   <div class="hdr">
     <div class="hdr-fade"></div>
@@ -217,6 +237,7 @@ const CONFIG = {
     <path d="M0 60 C200 20 380 100 580 60 S960 20 1160 55 V120 H0Z" fill="#62b6ee" opacity=".35"/>
     <path d="M0 85 C220 55 420 115 640 80 S1000 60 1160 85 V120 H0Z" fill="#2f97e0" opacity=".35"/>
   </svg></div>
+</div>
 </div>
 </div>
 
@@ -356,7 +377,8 @@ const f2 = v => isNaN(v)?'-':v.toFixed(2);
 const f0 = v => isNaN(v)?'-':Math.round(v).toLocaleString('en-US');
 
 /* ===================== แสดงผล ===================== */
-function render(){
+function render(){ renderInner(); fitReport(); }
+function renderInner(){
   const d=$('selDate').value, b=$('selBranch').value;
   let rows=ALL.filter(r=>r.date===d && (!b||r.branch===b));
   const sort=$('selSort').value;
@@ -431,13 +453,29 @@ function render(){
     : `<div class="card empty">ไม่มีข้อมูลของวันที่เลือก</div>`;
 }
 
+/* ===================== ย่อให้พอดีจอ ===================== */
+function fitReport(){
+  const el=$('report'), fit=$('fit');
+  const avail=document.documentElement.clientWidth-(window.innerWidth<=760?12:32);
+  const k=Math.min(1, avail/el.offsetWidth);
+  el.style.transform=k<1?`scale(${k})`:'none';
+  fit.style.width=Math.floor(el.offsetWidth*k)+'px';
+  fit.style.height=Math.ceil(el.offsetHeight*k)+'px';
+}
+window.addEventListener('resize',fitReport);
+window.addEventListener('orientationchange',()=>setTimeout(fitReport,200));
+if(document.fonts) document.fonts.ready.then(fitReport);
+
 /* ===================== Export เป็นรูป ===================== */
 async function exportImage(){
   const btn=$('btnExport'); btn.disabled=true; const old=btn.textContent; btn.textContent='กำลังสร้างรูป…';
   try{
     await document.fonts.ready;
     const el=$('report');
-    const canvas=await html2canvas(el,{scale:2,useCORS:true,logging:false,backgroundColor:null,windowWidth:el.scrollWidth+40});
+    el.style.transform='none';   // export ที่ขนาดเต็มเสมอ ไม่ว่าจอจะย่ออยู่หรือไม่
+    let canvas;
+    try{ canvas=await html2canvas(el,{scale:2,useCORS:true,logging:false,backgroundColor:null,windowWidth:1240}); }
+    finally{ fitReport(); }
     const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
     const name=`คุณภาพน้ำเส้นท่อ_${$('selDate').value||'report'}.png`;
     const file=new File([blob],name,{type:'image/png'});
