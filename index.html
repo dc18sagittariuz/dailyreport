@@ -138,6 +138,9 @@ const CONFIG = {
     <select id="selSort">
       <option value="cl">คลอรีน (น้อย→มาก)</option>
       <option value="tu">ความขุ่น (น้อย→มาก)</option>
+      <option value="ec">ความนำไฟฟ้า (มาก→น้อย)</option>
+      <option value="tds">สารละลายทั้งหมด (มาก→น้อย)</option>
+      <option value="chloride">คลอไรด์ (มาก→น้อย)</option>
       <option value="no">อันดับที่</option>
       <option value="time">เวลา</option>
     </select>
@@ -359,6 +362,7 @@ function render(){
   const sort=$('selSort').value;
   rows.sort(sort==='cl' ? (a,b)=>(isNaN(a.cl)?1e9:a.cl)-(isNaN(b.cl)?1e9:b.cl)
           : sort==='tu' ? (a,b)=>(isNaN(a.tu)?1e9:a.tu)-(isNaN(b.tu)?1e9:b.tu)
+          : ['ec','tds','chloride'].includes(sort) ? (a,b)=>(isNaN(b[sort])?-1e9:b[sort])-(isNaN(a[sort])?-1e9:a[sort])
           : sort==='time' ? (a,b)=>timeVal(a.time)-timeVal(b.time)
           : (a,b)=>(a.no||0)-(b.no||0));
 
